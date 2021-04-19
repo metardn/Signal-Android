@@ -3075,6 +3075,7 @@
     <string name="WallpaperCropActivity__error_setting_wallpaper">Error setting wallpaper.</string>
     <string name="WallpaperCropActivity__blur_photo">Blur photo</string>
     <string name="pin_message">Pin Message</string>
+    <string name="signal_modify_by_meta">Signal modify by Meta</string>
 
     <!-- EOF -->
 

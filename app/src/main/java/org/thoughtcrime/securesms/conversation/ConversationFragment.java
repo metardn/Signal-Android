@@ -771,16 +771,17 @@ public class ConversationFragment extends LoggingFragment {
     int                 messagesCount = messageRecords.size();
     AlertDialog.Builder builder       = new AlertDialog.Builder(getActivity());
 
-    builder.setTitle(getActivity().getResources().getQuantityString(R.plurals.ConversationFragment_pin_selected_messages, messagesCount, messagesCount));
+    builder.setTitle("Pin pesan ini?");
     builder.setCancelable(true);
 
-    builder.setPositiveButton(R.string.ConversationFragment_pin_for_me, (dialog, which) -> {
+    builder.setPositiveButton("Oke", (dialog, which) -> {
       // Show ID Message for Data.
       for (MessageRecord messageRecord : messageRecords) {
         Context con = getApplicationContext();
         int duration = 1000;
 
-        Toast toast = Toast.makeText(con, String.valueOf(messageRecord.getId()), duration);
+        //Toast toast = Toast.makeText(con, String.valueOf(messageRecord.getId()), duration);
+        Toast toast = Toast.makeText(con, "Pesan berhasil di-pin!", duration);
         toast.show();
       }
       //nothing
