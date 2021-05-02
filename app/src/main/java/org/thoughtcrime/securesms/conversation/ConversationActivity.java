@@ -100,6 +100,8 @@ import org.thoughtcrime.securesms.PassphraseRequiredActivity;
 import org.thoughtcrime.securesms.PromptMmsActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.ShortcutLauncherActivity;
+// Mengimport class baru - Meta Arda Nabila
+import org.thoughtcrime.securesms.ShowPinnedMessage;
 import org.thoughtcrime.securesms.TransportOption;
 import org.thoughtcrime.securesms.VerifyIdentityActivity;
 import org.thoughtcrime.securesms.attachments.Attachment;
@@ -1022,6 +1024,8 @@ public class ConversationActivity extends PassphraseRequiredActivity
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
     case R.id.menu_create_bubble:             handleCreateBubble();                              return true;
+    //Menambah opsi untuk menampilkan pesan yang dipin - Meta Arda Nabila
+    case R.id.menu_show_pin_message:          handleViewPinMessage();                            return true;
     case android.R.id.home:                   super.onBackPressed();                             return true;
     }
 
@@ -1258,6 +1262,12 @@ public class ConversationActivity extends PassphraseRequiredActivity
 
   private void handleViewMedia() {
     startActivity(MediaOverviewActivity.forThread(this, threadId));
+  }
+
+  //Menambah handle untuk menampilkan pesan dipin - Meta Arda Nabila
+  private void handleViewPinMessage() {
+    Intent intent = new Intent(this, ShowPinnedMessage.class);
+    startActivity(intent);
   }
 
   private void handleAddShortcut() {

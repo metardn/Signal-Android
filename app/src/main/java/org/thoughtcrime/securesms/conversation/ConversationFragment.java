@@ -116,6 +116,7 @@ import org.thoughtcrime.securesms.mms.PartAuthority;
 import org.thoughtcrime.securesms.mms.Slide;
 import org.thoughtcrime.securesms.permissions.Permissions;
 import org.thoughtcrime.securesms.phonenumbers.PhoneNumberFormatter;
+import org.thoughtcrime.securesms.pinned_message_list;
 import org.thoughtcrime.securesms.providers.BlobProvider;
 import org.thoughtcrime.securesms.reactions.ReactionsBottomSheetDialogFragment;
 import org.thoughtcrime.securesms.recipients.LiveRecipient;
@@ -205,6 +206,9 @@ public class ConversationFragment extends LoggingFragment {
   private VoiceNoteMediaController    voiceNoteMediaController;
   private View                        toolbarShadow;
   private Stopwatch                   startupStopwatch;
+  //variabel baru untuk menyimpan pesan yang dipin - Meta Arda Nabila
+  private pinned_message_list         pinnedMessage;
+  public static List<pinned_message_list> listPinnedMessage = new ArrayList<>();
 
   public static void prepare(@NonNull Context context) {
     FrameLayout parent = new FrameLayout(context);
@@ -763,25 +767,56 @@ public class ConversationFragment extends LoggingFragment {
   private void handlePinMessages(final Set<ConversationMessage> conversationMessages) {
     Set<MessageRecord> messageRecordsPin = Stream.of(conversationMessages).map(ConversationMessage::getMessageRecord).collect(Collectors.toSet());
     buildRemotePinConfirmationDialog(messageRecordsPin).show();
+
+    // Modify Handle Pin Messages - Meta Arda N
+    List<ConversationMessage> messageList = new ArrayList<>(conversationMessages);
+    Collections.sort(messageList, (lhs, rhs) -> Long.compare(lhs.getMessageRecord().getDateReceived(), rhs.getMessageRecord().getDateReceived()));
+
+    SpannableStringBuilder bodyBuilder = new SpannableStringBuilder();
+    ClipboardManager       clipboard   = (ClipboardManager) requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+
+    for (ConversationMessage message : messageList) {
+      CharSequence body = message.getDisplayBody(requireContext());
+      if (!TextUtils.isEmpty(body)) {
+        if (bodyBuilder.length() > 0) {
+          bodyBuilder.append('\n');
+        }
+        bodyBuilder.append(body);
+      }
+    }
+
+    if (!TextUtils.isEmpty(bodyBuilder)) {
+      clipboard.setPrimaryClip(ClipData.newPlainText(null, bodyBuilder));
+      pinnedMessage = new pinned_message_list(clipboard.getPrimaryClip().getItemAt(0).getText().toString());
+      listPinnedMessage.add(pinnedMessage);
+    }
+
   }
 
+  // Mengembalikan pesan yang dipin
+  public static List<pinned_message_list> getListPinnedMessage(){
+    return listPinnedMessage;
+  }
+
+
   // Handle Pin Alert Dialog - Bima Putra S
+  // Modify - Meta Arda N
   private AlertDialog.Builder buildRemotePinConfirmationDialog(Set<MessageRecord> messageRecords) {
     Context             context       = requireActivity();
     int                 messagesCount = messageRecords.size();
     AlertDialog.Builder builder       = new AlertDialog.Builder(getActivity());
 
-    builder.setTitle("Pin pesan ini?");
+    builder.setTitle("Pin this message?");
     builder.setCancelable(true);
 
-    builder.setPositiveButton("Oke", (dialog, which) -> {
+    builder.setPositiveButton("Ok", (dialog, which) -> {
       // Show ID Message for Data.
       for (MessageRecord messageRecord : messageRecords) {
         Context con = getApplicationContext();
         int duration = 1000;
 
         //Toast toast = Toast.makeText(con, String.valueOf(messageRecord.getId()), duration);
-        Toast toast = Toast.makeText(con, "Pesan berhasil di-pin!", duration);
+        Toast toast = Toast.makeText(con, "Message successfully pinned", duration);
         toast.show();
       }
       //nothing
@@ -1696,7 +1731,7 @@ public class ConversationFragment extends LoggingFragment {
         case R.id.action_forward:     handleForwardMessage(conversationMessage);                                            return true;
         case R.id.action_download:    handleSaveAttachment((MediaMmsMessageRecord) conversationMessage.getMessageRecord()); return true;
         // Tambahan Confirm Buat PIN - Bima
-        case R.id.action_pin_msg:     handlePinMessages(SetUtil.newHashSet(conversationMessage));
+        case R.id.menu_pin_selected:     handlePinMessages(SetUtil.newHashSet(conversationMessage));                        return true;
         default:                                                                                                            return false;
       }
     }
@@ -1710,6 +1745,8 @@ public class ConversationFragment extends LoggingFragment {
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
       MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.conversation_context, menu);
+      //menambah opsi pin pada menu - Meta Arda Nabila
+      inflater.inflate(R.menu.conversation_list_batch_pin, menu);
 
       mode.setTitle("1");
 
@@ -1779,6 +1816,11 @@ public class ConversationFragment extends LoggingFragment {
         case R.id.menu_context_reply:
           maybeShowSwipeToReplyTooltip();
           handleReplyMessage(getSelectedConversationMessage());
+          actionMode.finish();
+          return true;
+        //menambah handle pin - Meta Arda Nabila
+        case R.id.menu_pin_selected:
+          handlePinMessages(getListAdapter().getSelectedItems());
           actionMode.finish();
           return true;
       }
